@@ -5,7 +5,7 @@ import time, random
 import math
 import serial
 from collections import deque
-
+from scipy import signal
 
 
 #Display loading 
@@ -28,35 +28,40 @@ plt.setp(line2,color = 'r')
 
 
 PData= PlotData(500)
-ax.set_ylim(0,500)
-ax2.set_ylim(0,500)
+ax.set_ylim(360,375)
+ax2.set_ylim(-20,20)
 
 
 
 # plot parameters
 print ('plotting data...')
 # open serial port
-strPort='com4'
+strPort='com14'
 ser = serial.Serial(strPort, 115200)
 ser.flush()
 
 start = time.time()
-
 while True:
     
     for ii in range(10):
 
         try:
-            data = float(ser.readline())
+            data = float(ser.readline())       
             PData.add(time.time() - start, data)
+            
         except:
             pass
 
+        
+    xf = np.fft.fft(PData.axis_y)
+    xf[0] = 0
+    PData.axis_y2 = np.fft.ifft(xf)
+    
     ax.set_xlim(PData.axis_x[0], PData.axis_x[0]+5)
     ax2.set_xlim(PData.axis_x[0], PData.axis_x[0]+5)
     line.set_xdata(PData.axis_x)
     line.set_ydata(PData.axis_y)
     line2.set_xdata(PData.axis_x)
-    line2.set_ydata(PData.axis_y)
+    line2.set_ydata(PData.axis_y2)
     fig.canvas.draw()
     fig.canvas.flush_events()
